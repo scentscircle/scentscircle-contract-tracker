@@ -1,4 +1,4 @@
-import React from "react";
+
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbyjXzIjUxBQZotqfrMKziVq0QbHc4h7bRaIwTAx2PDV7T13xtrPZA6WXwNbRFY_StvD6g/exec";
@@ -32,7 +32,7 @@ function formatDate(d) {
   return `${day.padStart(2,"0")} ${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][parseInt(month)-1]} ${year}`;
 }
 
-const emptyForm = { client: "", type: "", start: "", end: "", value: "", monthlyValue: "", currency: "AED", contact: "", status: "active" };
+const emptyForm = { client: "", type: "", start: "", end: "", value: "", monthlyValue: "", currency: "AED", contact: "", contractStatus: "active", emirate: "", location: "" };
 const PAGE_SIZE = 15;
 
 function PaginationBar({ currentPage, totalPages, onPageChange }) {
@@ -211,7 +211,7 @@ export default function ContractTracker() {
   }
 
   function startEdit(c) {
-    setForm({ client: c.client, type: c.type, start: c.start, end: c.end, value: String(c.value), monthlyValue: String(c.monthlyValue || ""), currency: c.currency || "AED", contact: c.contact || "", contractStatus: c.contractStatus || "active" });
+    setForm({ client: c.client, type: c.type, start: c.start, end: c.end, value: String(c.value), monthlyValue: String(c.monthlyValue || ""), currency: c.currency || "AED", contact: c.contact || "", contractStatus: c.contractStatus || "active", emirate: c.emirate || "", location: c.location || "" });
     setEditId(c.id);
     setShowForm(true);
   }
@@ -354,7 +354,7 @@ export default function ContractTracker() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #3a2e10", background: "#0a0800" }}>
-                  {["#", "Client", "Type", "Expiry", "Status", "Contract Value", "Monthly Value", "Contact", "Action"].map(h => (
+                {["#", "Client", "Emirate", "Location", "Type", "Expiry", "Status", "Contract Value", "Monthly Value", "Contact", "Action"].map(h => (
                     <th key={h} style={{ padding: "10px 10px", textAlign: "left", color: "#555570", fontWeight: 600, fontSize: 10, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr>
@@ -367,7 +367,9 @@ export default function ContractTracker() {
                   <tr key={c.id} className="row-hover" style={{ borderBottom: "1px solid #2a2000", background: i % 2 === 0 ? "#0f0e00" : "#0a0900" }}>
                     <td style={{ padding: "10px 10px", color: "#7a6a30", fontSize: 11 }}>{(currentPage - 1) * PAGE_SIZE + i + 1}</td>
                     <td style={{ padding: "10px 10px", fontWeight: 600, color: "#f5e6b0", fontSize: 12, whiteSpace: "normal", wordBreak: "break-word", maxWidth: 280 }}>{c.client}</td>
-                    <td style={{ padding: "10px 10px" }}><span className="tag">{c.type || "—"}</span></td>
+                    <td style={{ padding: "10px 10px", color: "#d4b96a", fontSize: 12 }}>{c.emirate || "—"}</td>
+                  <td style={{ padding: "10px 10px", color: "#a08840", fontSize: 12 }}>{c.location || "—"}</td>
+                  <td style={{ padding: "10px 10px" }}><span className="tag">{c.type || "—"}</span></td>
                     <td style={{ padding: "10px 10px", color: "#d4b96a", fontSize: 12 }}>{formatDate(c.end)}</td>
                     <td style={{ padding: "10px 10px" }}>
                       <span className="chip" style={{ background: c.status.bg, color: c.status.color, border: `1px solid ${c.status.color}40` }}>
@@ -474,6 +476,25 @@ const autoEnd = start ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,
               <div>
                 <label>Client WhatsApp</label>
                 <input value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} placeholder="+971 50 000 0000" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div>
+                  <label>Emirate</label>
+                  <select value={form.emirate} onChange={e => setForm(f => ({ ...f, emirate: e.target.value }))}>
+                    <option value="">Select Emirate...</option>
+                    <option>Abu Dhabi</option>
+                    <option>Dubai</option>
+                    <option>Sharjah</option>
+                    <option>Ajman</option>
+                    <option>Umm Al Quwain</option>
+                    <option>Ras Al Khaimah</option>
+                    <option>Fujairah</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Location</label>
+                  <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. Dubai Marina" />
+                </div>
               </div>
               <div>
                 <label>Contract Status</label>
