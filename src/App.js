@@ -16,6 +16,7 @@ const STATUS = {
 const EMIRATES = ["Abu Dhabi","Dubai","Sharjah","Ajman","Umm Al Quwain","Ras Al Khaimah","Fujairah"];
 
 function getStatus(endDate) {
+  if (!endDate) return { color: "#666680", bg: "#1a1a28", dot: "#666680", days: 9999 };
   const today = new Date(); today.setHours(0,0,0,0);
   const clean = String(endDate).split("T")[0];
   const [y,m,dd] = clean.split("-");
@@ -308,7 +309,7 @@ export default function ContractTracker() {
         {loading && (
           <div style={{ textAlign: "center", padding: 60, color: "#c9a84c" }}>
             <div className="spin" style={{ fontSize: 32, marginBottom: 12 }}>⟳</div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>Loading contracts from Google Sheets...</div>
+            <div style={{ fontSize: 14, fontWeight: 500 }}>Loading contracts...</div>
           </div>
         )}
 
@@ -391,7 +392,7 @@ export default function ContractTracker() {
                     <td style={{ padding: "10px 10px" }}>
                       <span className="chip" style={{ background: c.status.bg, color: c.status.color, border: `1px solid ${c.status.color}40` }}>
                         <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: c.status.dot, marginRight: 5, verticalAlign: "middle" }}></span>
-                        {c.status.days < 0 ? `${Math.abs(c.status.days)}d overdue` : `${c.status.days}d left`}
+                        {c.status.days === 9999 ? "No expiry set" : c.status.days < 0 ? `${Math.abs(c.status.days)}d overdue` : `${c.status.days}d left`}
                       </span>
                     </td>
                     <td style={{ padding: "10px 10px", color: "#f5d060", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>{c.currency} {Number(c.value).toLocaleString()}</td>
