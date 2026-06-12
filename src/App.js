@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbyRFsmcWSx9Bw6v36Vz_emY5i-MANZ5C99FOADwGXeqYodER3ECLJYP7mR-3_ZNwF0OwA/exec";
+const SUPABASE_URL = "https://xcwfzuvyigqwrxmtswrd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Jbc5OenfTO8AGUj_nyiA7g_dxJ5BACE";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const STATUS = {
   EXPIRED: { color: "#ef4444", bg: "#2d1515", dot: "#ef4444" },
@@ -93,15 +96,26 @@ export default function ContractTracker() {
     setLoading(true);
     setSyncStatus("synced");
     try {
-      const res = await fetch(SHEET_URL + "?nocache=" + Date.now());
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        const loaded = json.data
-          .filter(c => c.id && c.client)
-          .map(c => ({ ...c, value: Number(c.value) || 0, monthlyValue: Number(c.monthlyValue) || 0 }));
-        setContracts(loaded);
-        setLastRefresh(new Date());
-      }
+      const { data, error } = await supabase.from("contracts").select("*");
+      if (error) throw error;
+      const loaded = (data || [])
+        .filter(c => c.id && c.client)
+        .map(c => ({
+          id: c.id,
+          client: c.client,
+          type: c.type || "",
+          start: c.start || "",
+          end: c.end,
+          value: Number(c.value) || 0,
+          currency: c.currency || "AED",
+          contact: c.contact || "",
+          monthlyValue: Number(c.monthly_value) || 0,
+          contractStatus: c.contract_status || "active",
+          emirate: c.emirate || "",
+          location: c.location || "",
+        }));
+      setContracts(loaded);
+      setLastRefresh(new Date());
     } catch {
       setSyncStatus("error");
     }
@@ -114,7 +128,22 @@ export default function ContractTracker() {
   async function addToSheet(contract) {
     setSyncStatus("saving"); setSaving(true);
     try {
-      await fetch(SHEET_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "add", contract }) });
+      const row = {
+        id: contract.id,
+        client: contract.client,
+        type: contract.type || null,
+        start: contract.start || null,
+        end: contract.end || null,
+        value: Number(contract.value) || 0,
+        currency: contract.currency || "AED",
+        contact: contract.contact || null,
+        monthly_value: Number(contract.monthlyValue) || 0,
+        contract_status: contract.contractStatus || "active",
+        emirate: contract.emirate || null,
+        location: contract.location || null,
+      };
+      const { error } = await supabase.from("contracts").insert(row);
+      if (error) throw error;
       setSyncStatus("synced"); setLastRefresh(new Date());
     } catch { setSyncStatus("error"); }
     setSaving(false);
@@ -123,7 +152,21 @@ export default function ContractTracker() {
   async function updateInSheet(contract) {
     setSyncStatus("saving"); setSaving(true);
     try {
-      await fetch(SHEET_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", contract }) });
+      const row = {
+        client: contract.client,
+        type: contract.type || null,
+        start: contract.start || null,
+        end: contract.end || null,
+        value: Number(contract.value) || 0,
+        currency: contract.currency || "AED",
+        contact: contract.contact || null,
+        monthly_value: Number(contract.monthlyValue) || 0,
+        contract_status: contract.contractStatus || "active",
+        emirate: contract.emirate || null,
+        location: contract.location || null,
+      };
+      const { error } = await supabase.from("contracts").update(row).eq("id", contract.id);
+      if (error) throw error;
       setSyncStatus("synced"); setLastRefresh(new Date());
     } catch { setSyncStatus("error"); }
     setSaving(false);
